@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AdSync AI — CRO Personalization Engine</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app">
+
+    <header class="header">
+      <div class="logo"><span class="logo-dot"></span> AdSync AI</div>
+      <span class="model-badge" id="modelBadge">gpt-4o-mini</span>
+    </header>
+
+    <section class="hero">
+      <p class="hero-label">CRO Personalization Engine</p>
+      <h1>Turn any ad into a<br />converting landing page</h1>
+      <p class="hero-sub">
+        Paste your ad creative + landing page URL. The AI analyzes the message-match gap
+        and returns an enhanced page — same structure, better conversion.
+      </p>
+    </section>
+
+    <!-- Step 1: Ad Creative -->
+    <div class="card">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Ad Creative Input</div>
+      </div>
+      <label for="adImgUrl">Image URL (ad banner, social post, display ad)</label>
+      <input type="url" id="adImgUrl" placeholder="https://example.com/ad-image.jpg" oninput="previewAd(this.value)" />
+      <img id="imgPreview" class="img-preview" alt="Ad preview" />
+      <div class="or-divider">or describe the ad</div>
+      <label for="adText">Ad description / copy (headline, CTA, offer, audience)</label>
+      <textarea id="adText" placeholder="e.g. 'Get 50% off your first month — productivity app for remote teams. CTA: Start Free Trial. Audience: busy professionals.'"></textarea>
+      <div class="tags-row">
+        <span class="tags-label">Quick templates:</span>
+        <button class="tag" onclick="fillAd('SaaS free trial — &quot;Stop losing leads. CRO tool for marketing teams.&quot; CTA: Start for free. Audience: Growth marketers.')">SaaS Trial</button>
+        <button class="tag" onclick="fillAd('E-commerce — &quot;Summer sale: 40% off all sneakers. Limited time.&quot; CTA: Shop Now. Audience: Sneaker enthusiasts 18-35.')">Ecomm Sale</button>
+        <button class="tag" onclick="fillAd('B2B SaaS — &quot;Cut reporting time by 80%. Analytics for agencies.&quot; CTA: Book a Demo. Audience: Agency owners.')">B2B Demo</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Landing Page URL -->
+    <div class="card">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Landing Page URL</div>
+      </div>
+      <label for="landingUrl">URL to personalize</label>
+      <input type="url" id="landingUrl" placeholder="https://yourwebsite.com/landing-page" />
+      <div class="tags-row" style="margin-top:8px;">
+        <button class="tag" onclick="document.getElementById('landingUrl').value='https://stripe.com'">stripe.com</button>
+        <button class="tag" onclick="document.getElementById('landingUrl').value='https://linear.app'">linear.app</button>
+        <button class="tag" onclick="document.getElementById('landingUrl').value='https://notion.so'">notion.so</button>
+      </div>
+    </div>
+
+    <!-- Step 3: API Config -->
+    <div class="card">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">API Configuration</div>
+      </div>
+      <label for="apiKey">OpenRouter API Key</label>
+      <div class="api-row">
+        <input type="password" id="apiKey" placeholder="sk-or-v1-..." />
+        <button class="toggle-btn" onclick="toggleKey()">Show</button>
+      </div>
+      <p class="api-note">Key stays in your browser only. Never sent anywhere except OpenRouter.</p>
+      <label for="modelSelect" style="margin-top:12px;">Model</label>
+      <select id="modelSelect" onchange="updateModelBadge()">
+        <option value="openai/gpt-4o-mini">GPT-4o Mini (Recommended)</option>
+        <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+        <option value="anthropic/claude-3-haiku">Claude 3 Haiku (Fast)</option>
+        <option value="openai/gpt-4o">GPT-4o</option>
+        <option value="google/gemini-flash-1.5">Gemini Flash 1.5</option>
+      </select>
+    </div>
+
+    <button class="run-btn" id="runBtn" onclick="runPipeline()">
+      Generate Personalized Landing Page →
+    </button>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- Progress -->
+    <div class="progress-area" id="progressArea">
+      <div id="ps1" class="progress-step"><div class="step-icon"></div><span>Fetching landing page content</span></div>
+      <div id="ps2" class="progress-step"><div class="step-icon"></div><span>Analyzing ad creative &amp; audience</span></div>
+      <div id="ps3" class="progress-step"><div class="step-icon"></div><span>Identifying CRO opportunities</span></div>
+      <div id="ps4" class="progress-step"><div class="step-icon"></div><span>Generating personalized HTML</span></div>
+      <div id="ps5" class="progress-step"><div class="step-icon"></div><span>Validating &amp; safety-checking output</span></div>
+    </div>
+
+    <!-- Output -->
+    <div class="output-area" id="outputArea">
+      <div class="output-header">
+        <span class="output-title">Personalized Landing Page</span>
+        <div class="output-actions">
+          <button class="copy-btn" onclick="copyHTML()">Copy HTML</button>
+          <button class="copy-btn" onclick="downloadHTML()">Download</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" id="tab-preview" onclick="switchTab('preview')">Preview</button>
+        <button class="tab" id="tab-code" onclick="switchTab('code')">HTML Code</button>
+        <button class="tab" id="tab-insights" onclick="switchTab('insights')">CRO Insights</button>
+      </div>
+      <div id="panel-preview">
+        <iframe class="preview-frame" id="previewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>
+      <div id="panel-code" style="display:none">
+        <pre class="code-block" id="codeBlock"></pre>
+      </div>
+      <div id="panel-insights" style="display:none">
+        <div class="insights-block" id="insightsBlock"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="pipeline.js"></script>
+</body>
+</html>
